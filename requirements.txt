@@ -1,0 +1,11 @@
+flask
+faiss-cpu
+transformers
+sentence-transformers
+openai
+torch
+scikit-learn
+pandas
+python-dotenv
+gspread
+oauth2client
