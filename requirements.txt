@@ -1,4 +1,5 @@
 Flask
+gunicorn
 python-dotenv
 faiss-cpu
 torch
