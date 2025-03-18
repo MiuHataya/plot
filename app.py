@@ -1,5 +1,7 @@
 import os
 from dotenv import load_dotenv
+import asyncio
+from flask import Flask, jsonify
 
 load_dotenv()  # .env の読み込み
 app = Flask(__name__)
@@ -17,71 +19,85 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 
-# 近似値の閾値（0.0～1.0 の間で調整可能）
-TARGET_SIMILARITY = 0.4
-SIMILARITY_THRESHOLD = 0.1
-
 # 公開された Google スプレッドシートの 読み込み
 df = pd.read_csv(CSV_URL)
 print("Googleスプレッドシートからデータを取得しました！")
 
 
-# ① Embedding モデルのロード（検索用）
+# Embedding　モデルのロード（検索用）
 embedding_model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
-
-# ② T5 (生成) モデルのロード
+# T5 (生成) モデルのロード
 tokenizer_t5 = T5Tokenizer.from_pretrained("t5-small")
 model_t5 = T5ForConditionalGeneration.from_pretrained("t5-small")
 model_t5.to("cpu")
 
-# ③ データベースを作成
+# データベースを作成
 docs = df.apply(lambda row: ",  ".join(f"{col}: {val}" for col, val in zip(df.columns, row)), axis=1).tolist()
-
 # 埋め込み生成
 doc_embeddings = embedding_model.encode(docs, batch_size=64, show_progress_bar=True)
 
-# ④ FAISS ベクトル検索エンジンを構築
+# FAISS ベクトル検索エンジンを構築
 dimension = doc_embeddings.shape[1]
 index = faiss.IndexFlatL2(dimension)
 index.add(doc_embeddings)
 
-# ⑤ ユーザーの質問を受け取る
-query = "genre: fantasy,  summary: Miu who is a cute girl in her first day of school and meets Ayane who can speak Japanese."
-query_embedding = embedding_model.encode([query])
+# ユーザーの質問を受け取る
+async def process_query(query, target_similarity=0.4, similarity_threshold=0.1):
+    query_embedding = embedding_model.encode([query])
+    # FAISS を使って類似文書を検索 (上位5件)
+    D, I = index.search(query_embedding, k=5)
 
-# ⑥ FAISS を使って類似文書を検索 (上位5件)
-D, I = index.search(query_embedding, k=5)
+    # コサイン類似度を計算
+    query_vector = query_embedding / np.linalg.norm(query_embedding)  # 正規化
+    doc_vectors = doc_embeddings / np.linalg.norm(doc_embeddings, axis=1, keepdims=True)  # 正規化
+    similarities = cosine_similarity(query_vector, doc_vectors)[0]
 
-# ⑦ コサイン類似度を計算
-query_vector = query_embedding / np.linalg.norm(query_embedding)  # 正規化
-doc_vectors = doc_embeddings / np.linalg.norm(doc_embeddings, axis=1, keepdims=True)  # 正規化
-similarities = cosine_similarity(query_vector, doc_vectors)[0]
+    # ターゲット類似度に最も近い文書を取得
+    closest_docs = [(docs[i], similarities[i]) for i in range(len(docs))]
+    sorted_docs = sorted(closest_docs, key=lambda x: abs(x[1] - TARGET_SIMILARITY))[:5]
+    '''
+    # 上位5件の Summary を表示
+    print(f"\n 質問: {query}\n")
+    print("上位5件の類似文書 (TARGET_SIMILARITY に最も近いものを選択):\n")
+    '''
 
-# ⑧ ターゲット類似度に最も近い文書を取得
-closest_docs = [(docs[i], similarities[i]) for i in range(len(docs))]
-sorted_docs = sorted(closest_docs, key=lambda x: abs(x[1] - TARGET_SIMILARITY))[:5]
+    summaries = []
+    for doc, sim in sorted_docs:
+        doc_data = dict(item.split(": ", 1) for item in doc.split(",  ") if ": " in item)
+        if abs(sim - TARGET_SIMILARITY) <= SIMILARITY_THRESHOLD:
+            title_text = doc_data.get("title", "No title available")
+            genre_text = doc_data.get("genre", "No genre available")
+            summary_text = doc_data.get("summary", "No summary available")
+            summaries.append(summary_text)
+            '''
+            print(f" 類似度: {sim:.2f} | Title: {title_text} | Genre: {genre_text}")
+            print(f" Summary: {summary_text}\n")
+            '''
 
-# 上位5件の Summary を表示
-print(f"\n 質問: {query}\n")
-print("上位5件の類似文書 (TARGET_SIMILARITY に最も近いものを選択):\n")
-
-summaries = []
-for doc, sim in sorted_docs:
-    doc_data = dict(item.split(": ", 1) for item in doc.split(",  ") if ": " in item)
-
-    if abs(sim - TARGET_SIMILARITY) <= SIMILARITY_THRESHOLD:
-        title_text = doc_data.get("title", "No title available")
-        genre_text = doc_data.get("genre", "No genre available")
-        summary_text = doc_data.get("summary", "No summary available")
-        summaries.append(summary_text)
-        print(f" 類似度: {sim:.2f} | Title: {title_text} | Genre: {genre_text}")
-        print(f" Summary: {summary_text}\n")
+    # Switch はここで
+    if not summaries:
+      print("該当なし (新しい Summary を生成します)")
+      ai_answer = await generate_story(query)
+    
+    else:
+        print("\n 近似 5 件の類似 Summary を元に新しい Summary を生成しました")
+        T5_answer = generate_summary_from_multiple_docs(summaries)
+        print("\n T5 が生成した Summary:")
+        print(T5_answer)
+        ai_answer = await refine_summary_with_openai(T5_answer)
+    
+    return ai_answer
+    '''
+    # 出力
+    print("\n AI が生成した Summary:")
+    print(ai_answer)
+    '''
 
 
 import openai
 from openai import AsyncOpenAI
 
-# Case 1: OpenAI を使った ０　からの生成関数
+# Case 1: OpenAI を使った ０ からの生成関数
 client = AsyncOpenAI(api_key=OPENAI_API_KEY)
 async def generate_story(prompt, model="gpt-3.5-turbo", max_tokens=300):
     try:
@@ -90,8 +106,8 @@ async def generate_story(prompt, model="gpt-3.5-turbo", max_tokens=300):
             messages=[
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=max_tokens, #length of story
-            temperature=0.8, # creativity of story
+            max_tokens=max_tokens, 
+            temperature=0.8,
         )
 
         # Access the content in the latest response format
@@ -131,19 +147,16 @@ async def refine_summary_with_openai(summary):
     )
     return response.choices[0].message.content
 
+@app.route("/summary", methods=["GET"])
+def get_summary():
+    # ユーザーの入力を受け取る
+    query = request.args.get("query", default="genre: fantasy, summary: A young girl starts school and meets a special friend.")
+    target_similarity = float(request.args.get("target_similarity", 0.4))
+    similarity_threshold = float(request.args.get("similarity_threshold", 0.1))
 
-# Switch はここで
-if not summaries:
-  print("該当なし (新しい Summary を生成します)")
-  ai_answer = await generate_story(query)
+    # クエリの処理
+    ai_answer = asyncio.run(process_query(query, target_similarity, similarity_threshold))
+    return jsonify({"query": query, "summary": ai_answer})
 
-else:
-    print("\n 近似 5 件の類似 Summary を元に新しい Summary を生成しました")
-    T5_answer = generate_summary_from_multiple_docs(summaries)
-    print("\n T5 が生成した Summary:")
-    print(T5_answer)
-    ai_answer = await refine_summary_with_openai(T5_answer)
-
-# ✅ 出力
-print("\n AI が生成した Summary:")
-print(ai_answer)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
