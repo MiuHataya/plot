@@ -1,12 +1,11 @@
 flask
+python-dotenv
 faiss-cpu
+torch
 transformers
 sentence-transformers
 sentencepiece
-openai
-torch
-scikit-learn
+numpy
 pandas
-python-dotenv
-gspread
-oauth2client
+scikit-learn
+openai
