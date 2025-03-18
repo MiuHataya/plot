@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 import asyncio
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request 
 
 load_dotenv()  # .env の読み込み
 app = Flask(__name__)
