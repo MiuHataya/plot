@@ -109,14 +109,12 @@ async def generate_story(prompt, model="gpt-3.5-turbo", max_tokens=300):
             max_tokens=max_tokens, 
             temperature=0.8,
         )
-
         # Access the content in the latest response format
         story = response.choices[0].message.content
         return story
-
+        
     except Exception as e:
         return f"An error occurred: {e}"
-
 
 # Case 2: T5 による新しい Summary 生成関数
 def generate_summary_from_multiple_docs(docs, prefix="create a coherent story summary: "):
@@ -146,6 +144,7 @@ async def refine_summary_with_openai(summary):
         temperature=0.7
     )
     return response.choices[0].message.content
+
 
 @app.route("/summary", methods=["GET"])
 def get_summary():
