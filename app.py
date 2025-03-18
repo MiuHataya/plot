@@ -158,8 +158,9 @@ def get_summary():
     ai_answer = asyncio.run(process_query(query, target_similarity, similarity_threshold))
     return jsonify({"query": query, "summary": ai_answer})
 
-def index():
-    return jsonify({"message": "Welcome to the Plot Generation API!"})
-
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
+
+@app.route("/")
+def index():
+    return jsonify({"message": "Welcome to the Plot Generation API!"})
