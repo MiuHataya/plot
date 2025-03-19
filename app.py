@@ -42,7 +42,7 @@ index = faiss.IndexFlatL2(dimension)
 index.add(doc_embeddings)
 
 # ユーザーの質問を受け取る
-async def process_query(query, target_similarity=0.4, similarity_threshold=0.1):
+async def process_query(query, TARGET_SIMILARITY=0.4, SIMILARITY_THRESHOLD=0.1):
     query_embedding = embedding_model.encode([query])
     # FAISS を使って類似文書を検索 (上位5件)
     D, I = index.search(query_embedding, k=5)
@@ -148,18 +148,19 @@ async def refine_summary_with_openai(summary):
 
 @app.route("/summary", methods=["GET"])
 def get_summary():
-    # ユーザーの入力を受け取る
     query = request.args.get("query", default="genre: fantasy, summary: A young girl starts school and meets a special friend.")
     target_similarity = float(request.args.get("target_similarity", 0.4))
     similarity_threshold = float(request.args.get("similarity_threshold", 0.1))
 
-    # クエリの処理
-    ai_answer = asyncio.run(process_query(query, target_similarity, similarity_threshold))
-    return jsonify({"query": query, "summary": ai_answer})
+    future = executor.submit(asyncio.run, process_query(query, target_similarity, similarity_threshold))
+    ai_answer = future.result()
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    return jsonify({"query": query, "summary": ai_answer})
 
 @app.route("/")
 def index():
     return jsonify({"message": "Welcome to the Plot Generation API!"})
+
+if __name__ == "__main__":
+    port = int(os.getenv("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
