@@ -147,6 +147,7 @@ async def refine_summary_with_openai(summary):
 
 
 @app.route("/summary", methods=["GET"])
+return jsonify({"message": "Let's go generation."})
 def get_summary():
     query = request.args.get("query", default="genre: fantasy, summary: A young girl starts school and meets a special friend.")
     target_similarity = float(request.args.get("target_similarity", 0.4))
