@@ -43,7 +43,7 @@ index.add(doc_embeddings)
 
 
 # ユーザーの質問を受け取る
-async def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
+def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
     query_embedding = embedding_model.encode([query])
     # FAISS を使って類似文書を検索 (上位5件)
     D, I = index.search(query_embedding, k=5)
@@ -148,12 +148,13 @@ async def refine_summary_with_openai(summary):
 
 
 @app.route("/summary", methods=["GET"])
-def get_summary():
+def get_summary(): 
     query = request.args.get("query", default="genre: fantasy, summary: A young girl, Miu starts school and meets a special friend.")
     TARGET_SIMILARITY = float(request.args.get("target_similarity", 0.4))
     SIMILARITY_THRESHOLD = float(request.args.get("similarity_threshold", 0.1))
 
-    ai_answer = asyncio.run(process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD))
+    ai_answer = process_query(query, target_similarity, similarity_threshold))
+    #ai_answer = asyncio.run(process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD))
     return jsonify({"query": query, "target": TARGET_SIMILARITY, "between" :SIMILARITY_THRESHOLD, "summary": ai_answer})
     
 
