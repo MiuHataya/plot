@@ -149,11 +149,16 @@ async def refine_summary_with_openai(summary):
 @app.route("/summary", methods=["GET"])
 def get_summary():
     query = request.args.get("query", default="genre: fantasy, summary: A young girl, Miu starts school and meets a special friend.")
-    target_similarity = float(request.args.get("target_similarity", 0.4))
-    similarity_threshold = float(request.args.get("similarity_threshold", 0.1))
+    TARGET_SIMILARITY = float(request.args.get("target_similarity", 0.4))
+    SIMILARITY_THRESHOLD = float(request.args.get("similarity_threshold", 0.1))
+    return jsonify({"query": query,
+                   "target": TARGET_SIMILARITY,
+                   "between": SIMILARITY_THRESHOLD})
 
+    '''
     ai_answer = asyncio.run(process_query(query, target_similarity, similarity_threshold))
     return jsonify({"query": query, "summary": ai_answer})
+    '''
     
 
 @app.route("/")
