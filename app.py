@@ -42,6 +42,58 @@ index = faiss.IndexFlatL2(dimension)
 index.add(doc_embeddings)
 
 
+# ユーザーの質問を受け取る
+async def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
+    query_embedding = embedding_model.encode([query])
+    # FAISS を使って類似文書を検索 (上位5件)
+    D, I = index.search(query_embedding, k=5)
+
+    # コサイン類似度を計算
+    query_vector = query_embedding / np.linalg.norm(query_embedding)  # 正規化
+    doc_vectors = doc_embeddings / np.linalg.norm(doc_embeddings, axis=1, keepdims=True)  # 正規化
+    similarities = cosine_similarity(query_vector, doc_vectors)[0]
+
+    # ターゲット類似度に最も近い文書を取得
+    closest_docs = [(docs[i], similarities[i]) for i in range(len(docs))]
+    sorted_docs = sorted(closest_docs, key=lambda x: abs(x[1] - TARGET_SIMILARITY))[:5]
+    '''
+    # 上位5件の Summary を表示
+    print(f"\n 質問: {query}\n")
+    print("上位5件の類似文書 (TARGET_SIMILARITY に最も近いものを選択):\n")
+    '''
+
+    summaries = []
+    for doc, sim in sorted_docs:
+        doc_data = dict(item.split(": ", 1) for item in doc.split(",  ") if ": " in item)
+        if abs(sim - TARGET_SIMILARITY) <= SIMILARITY_THRESHOLD:
+            title_text = doc_data.get("title", "No title available")
+            genre_text = doc_data.get("genre", "No genre available")
+            summary_text = doc_data.get("summary", "No summary available")
+            summaries.append(summary_text)
+            '''
+            print(f" 類似度: {sim:.2f} | Title: {title_text} | Genre: {genre_text}")
+            print(f" Summary: {summary_text}\n")
+            '''
+
+    # Switch はここで
+    if not summaries:
+      print("該当なし (新しい Summary を生成します)")
+      ai_answer = await generate_story(query)
+    else:
+        print("\n 近似 5 件の類似 Summary を元に新しい Summary を生成しました")
+        T5_answer = generate_summary_from_multiple_docs(summaries)
+        print("\n T5 が生成した Summary:")
+        print(T5_answer)
+        ai_answer = await refine_summary_with_openai(T5_answer)
+
+    return ai_answer
+    '''
+    # 出力
+    print("\n AI が生成した Summary:")
+    print(ai_answer)
+    '''
+
+
 import openai
 from openai import AsyncOpenAI
 
@@ -97,59 +149,12 @@ async def refine_summary_with_openai(summary):
 @app.route("/summary", methods=["GET"])
 def get_summary(): 
     query = request.args.get("query", default="genre: fantasy, summary: A young girl, Miu starts school and meets a special friend.")
-    TARGET_SIMILARITY = float(request.args.get("target_similarity", 0.4))
-    SIMILARITY_THRESHOLD = float(request.args.get("similarity_threshold", 0.1))
-        
-    # ユーザーの質問を受け取る
-    query_embedding = embedding_model.encode([query])
-    # FAISS を使って類似文書を検索 (上位5件)
-    D, I = index.search(query_embedding, k=5)
+    TARGET_SIMILARITY = float(request.args.get("TARGET_SIMILARITY", 0.4))
+    SIMILARITY_THRESHOLD = float(request.args.get("SIMILARITY_THRESHOLD", 0.1))
 
-    # コサイン類似度を計算
-    query_vector = query_embedding / np.linalg.norm(query_embedding)  # 正規化
-    doc_vectors = doc_embeddings / np.linalg.norm(doc_embeddings, axis=1, keepdims=True)  # 正規化
-    similarities = cosine_similarity(query_vector, doc_vectors)[0]
-
-    # ターゲット類似度に最も近い文書を取得
-    closest_docs = [(docs[i], similarities[i]) for i in range(len(docs))]
-    sorted_docs = sorted(closest_docs, key=lambda x: abs(x[1] - TARGET_SIMILARITY))[:5]
-    '''
-    # 上位5件の Summary を表示
-    print(f"\n 質問: {query}\n")
-    print("上位5件の類似文書 (TARGET_SIMILARITY に最も近いものを選択):\n")
-    '''
-
-    summaries = []
-    for doc, sim in sorted_docs:
-        doc_data = dict(item.split(": ", 1) for item in doc.split(",  ") if ": " in item)
-        if abs(sim - TARGET_SIMILARITY) <= SIMILARITY_THRESHOLD:
-            title_text = doc_data.get("title", "No title available")
-            genre_text = doc_data.get("genre", "No genre available")
-            summary_text = doc_data.get("summary", "No summary available")
-            summaries.append(summary_text)
-            '''
-            print(f" 類似度: {sim:.2f} | Title: {title_text} | Genre: {genre_text}")
-            print(f" Summary: {summary_text}\n")
-            '''
-
-    # Switch はここで
-    if not summaries:
-      print("該当なし (新しい Summary を生成します)")
-      ai_answer = await generate_story(query)
-    else:
-        print("\n 近似 5 件の類似 Summary を元に新しい Summary を生成しました")
-        T5_answer = generate_summary_from_multiple_docs(summaries)
-        print("\n T5 が生成した Summary:")
-        print(T5_answer)
-        ai_answer = await refine_summary_with_openai(T5_answer)
+    ai_answer = asyncio.run(process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD))
 
     return jsonify({"query": query, "target": TARGET_SIMILARITY, "between" :SIMILARITY_THRESHOLD, "summary": ai_answer})
-    #return ai_answer
-    '''
-    # 出力
-    print("\n AI が生成した Summary:")
-    print(ai_answer)
-    '''
 
 
 @app.route("/")
