@@ -90,7 +90,7 @@ def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
     if not summaries:
         print("該当なし (新しい Summary を生成します)")
         #ai_answer = asyncio.run(generate_story(query))
-        return "ナッシング！！"
+        return jsonify({"error": "ナッシング！！"})
     else:
         T5_answer = generate_summary_from_multiple_docs(summaries)
         print("\n 近似 5 件の類似 Summary を元に新しい Summary を生成しました")
@@ -99,7 +99,7 @@ def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
         #print(T5_answer)
         '''
         #ai_answer = asyncio.run(refine_summary_with_openai(T5_answer))
-        return "ありりんご！"
+        return jsonify({"error": "ありりんご！"})
 
 
 import asyncio
