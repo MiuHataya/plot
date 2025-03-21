@@ -58,6 +58,20 @@ def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
     # FAISS を使って類似文書を検索 (上位5件)
     D, I = index.search(query_embedding, k=5)
 
+    # コサイン類似度を計算
+    query_vector = query_embedding / np.linalg.norm(query_embedding)  # 正規化
+    doc_vectors = doc_embeddings / np.linalg.norm(doc_embeddings, axis=1, keepdims=True)  # 正規化
+    similarities = cosine_similarity(query_vector, doc_vectors)[0]
+
+    # ターゲット類似度に最も近い文書を取得
+    closest_docs = [(docs[i], similarities[i]) for i in range(len(docs))]
+    sorted_docs = sorted(closest_docs, key=lambda x: abs(x[1] - TARGET_SIMILARITY))[:5]
+    '''
+    # 上位5件の Summary を表示
+    print(f"\n 質問: {query}\n")
+    print("上位5件の類似文書 (TARGET_SIMILARITY に最も近いものを選択):\n")
+    '''
+
     test = []
     test.append(query)
     test.append(TARGET_SIMILARITY)
