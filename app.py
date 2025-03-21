@@ -23,7 +23,6 @@ from sklearn.metrics.pairwise import cosine_similarity
 df = pd.read_csv(CSV_URL)
 print("Googleスプレッドシートからデータを取得しました！")
 
-
 # Embedding　モデルのロード（検索用）
 embedding_model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
 # T5 (生成) モデルのロード
@@ -33,15 +32,24 @@ model_t5.to("cpu")
 
 # データベースを作成
 docs = df.apply(lambda row: ",  ".join(f"{col}: {val}" for col, val in zip(df.columns, row)), axis=1).tolist()
+'''
 # 埋め込み生成
 doc_embeddings = embedding_model.encode(docs, batch_size=64, show_progress_bar=True)
-
 '''
+# Railway のボリュームに保存したファイルのパス
+FILE_PATH = "./doc_embeddings.npy"
+# ファイルが存在するか確認
+if os.path.exists(FILE_PATH):
+    doc_embeddings = np.load(FILE_PATH)
+    print("doc_embeddings.npy をロードしました！")
+else:
+    print("エラー: doc_embeddings.npy が見つかりません！")
+
 # FAISS ベクトル検索エンジンを構築
 dimension = doc_embeddings.shape[1]
 index = faiss.IndexFlatL2(dimension)
 index.add(doc_embeddings)
-'''
+
 
 # ユーザーの質問を受け取る
 def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
