@@ -108,8 +108,12 @@ def get_summary():
     TARGET_SIMILARITY = float(request.args.get("TARGET_SIMILARITY", 0.4))
     SIMILARITY_THRESHOLD = float(request.args.get("SIMILARITY_THRESHOLD", 0.1))
     
+    return process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD)
+
+    '''
     ai_answer = process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD)
     return jsonify({"result": ai_answer})
+    '''
 
 '''
 def run_async_function(async_func, *args):
