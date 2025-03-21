@@ -49,24 +49,6 @@ else:
 import openai
 from openai import AsyncOpenAI
 
-# Case 1: OpenAI を使った ０ からの生成関数
-client = AsyncOpenAI(api_key=OPENAI_API_KEY)
-async def generate_story(prompt, model="gpt-3.5-turbo", max_tokens=300):
-    try:
-        response = await client.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=max_tokens, 
-            temperature=0.8,
-        )
-        # Access the content in the latest response format
-        story = response.choices[0].message.content
-        return story
-        
-    except Exception as e:
-        return f"An error occurred: {e}"
 
 # Case 2: T5 による新しい Summary 生成関数
 def generate_summary_from_multiple_docs(docs, prefix="create a coherent story summary: "):
@@ -85,17 +67,6 @@ def generate_summary_from_multiple_docs(docs, prefix="create a coherent story su
         )
     return tokenizer_t5.decode(output_ids[0], skip_special_tokens=True)
 
-# OpenAI API を使って Summary を自然な文章にする関数
-async def refine_summary_with_openai(summary):
-    response = await client.chat.completions.create(
-        model="gpt-4",
-        messages=[
-            {"role": "system", "content": "You are an expert at writing natural and engaging summaries."},
-            {"role": "user", "content": f"Please refine the following summary to make it more natural and engaging:\n\n{summary}"}
-        ],
-        temperature=0.7
-    )
-    return response.choices[0].message.content
 
 
 # ユーザーの質問を受け取る
