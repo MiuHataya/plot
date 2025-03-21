@@ -49,7 +49,22 @@ else:
 import openai
 from openai import AsyncOpenAI
 
-
+# Case 2: T5 による新しい Summary 生成関数
+def generate_summary_from_multiple_docs(story, prefix="create a coherent story summary: "):
+    combined_text = " ".join(story)
+    input_text = prefix + combined_text
+    inputs = tokenizer_t5(input_text, return_tensors="pt", padding=True, truncation=True, max_length=256)
+    
+    with torch.no_grad():
+        output_ids = model_t5.generate(
+            **inputs,
+            min_length=100,
+            max_length=300,
+            num_beams=5,
+            no_repeat_ngram_size=2,
+            early_stopping=False
+        )
+    return tokenizer_t5.decode(output_ids[0], skip_special_tokens=True)
 
 
 
@@ -92,25 +107,6 @@ def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
             print(f" Summary: {summary_text}\n")
             '''
 
-
-        # Case 2: T5 による新しい Summary 生成関数
-    def generate_summary_from_multiple_docs(story, prefix="create a coherent story summary: "):
-        combined_text = " ".join(story)
-        input_text = prefix + combined_text
-        inputs = tokenizer_t5(input_text, return_tensors="pt", padding=True, truncation=True, max_length=256)
-    
-        with torch.no_grad():
-            output_ids = model_t5.generate(
-                **inputs,
-                min_length=100,
-                max_length=300,
-                num_beams=5,
-                no_repeat_ngram_size=2,
-                early_stopping=False
-            )
-        return tokenizer_t5.decode(output_ids[0], skip_special_tokens=True)
-
-
     # Switch はここで
     if not summaries:
         print("該当なし (新しい Summary を生成します)")
@@ -133,7 +129,7 @@ def get_summary():
     TARGET_SIMILARITY = float(request.args.get("TARGET_SIMILARITY", 0.4))
     SIMILARITY_THRESHOLD = float(request.args.get("SIMILARITY_THRESHOLD", 0.1))
     
-    ai_answer = process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD)
+    ai_answer = generate_summary_from_multiple_docs("The novel concerns the dwelling of the Darkovan Order of the Renunciates. It also concerns Magda, a Terran, who goes to Thendara House in exchange for the Free Amazon Jaelle who has become the wife of an Earthman.")
     return ai_answer
     #return jsonify({"result": ai_answer})
 
