@@ -36,11 +36,12 @@ docs = df.apply(lambda row: ",  ".join(f"{col}: {val}" for col, val in zip(df.co
 # 埋め込み生成
 doc_embeddings = embedding_model.encode(docs, batch_size=64, show_progress_bar=True)
 
+'''
 # FAISS ベクトル検索エンジンを構築
 dimension = doc_embeddings.shape[1]
 index = faiss.IndexFlatL2(dimension)
 index.add(doc_embeddings)
-
+'''
 
 # ユーザーの質問を受け取る
 def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
