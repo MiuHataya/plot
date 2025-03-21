@@ -154,15 +154,26 @@ async def refine_summary_with_openai(summary):
     )
     return response.choices[0].message.content
 
-    
+
+import asyncio
+
 @app.route("/", methods=["GET"])
 def get_summary(): 
     query = request.args.get("query", default="genre: fantasy, summary: A young girl, Miu starts school and meets a special friend.")
     TARGET_SIMILARITY = float(request.args.get("TARGET_SIMILARITY", 0.4))
     SIMILARITY_THRESHOLD = float(request.args.get("SIMILARITY_THRESHOLD", 0.1))
-
+    
     ai_answer = process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD)
     return jsonify({"result": ai_answer})
+
+def run_async_function(async_func, *args):
+    try:
+        loop = asyncio.get_running_loop()
+        future = asyncio.ensure_future(async_func(*args))
+        return loop.run_until_complete(future)
+    except RuntimeError:
+        return asyncio.run(async_func(*args))
+    ai_answer = run_async_function(refine_summary_with_openai, T5_answer)
 
 
 @app.route("/summary")
