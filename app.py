@@ -7,6 +7,7 @@ load_dotenv()  # .env の読み込み
 app = Flask(__name__)
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+print(OPENAI_API_KEY)
 SHEET_ID = os.getenv("SHEET_ID")
 CSV_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv"
 
