@@ -85,11 +85,15 @@ def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
             print(f" Summary: {summary_text}\n")
             '''
 
-    test = []
-    test.append(query)
-    test.append(TARGET_SIMILARITY)
-    test.append(SIMILARITY_THRESHOLD)
-    return test
+    # Switch はここで
+    if not summaries:
+        summaries.append("ノーサマリー、残念")
+        return summaries
+
+    else:
+        return summaries
+
+    
 
     
 @app.route("/", methods=["GET"])
