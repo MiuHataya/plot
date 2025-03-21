@@ -52,7 +52,9 @@ def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
     query_vector = query_embedding / np.linalg.norm(query_embedding)  # 正規化
     doc_vectors = doc_embeddings / np.linalg.norm(doc_embeddings, axis=1, keepdims=True)  # 正規化
     similarities = cosine_similarity(query_vector, doc_vectors)[0]
+    return similarities
 
+    '''
     # ターゲット類似度に最も近い文書を取得
     closest_docs = [(docs[i], similarities[i]) for i in range(len(docs))]
     sorted_docs = sorted(closest_docs, key=lambda x: abs(x[1] - TARGET_SIMILARITY))[:5]
@@ -94,7 +96,7 @@ def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
     print("\n AI が生成した Summary:")
     print(ai_answer)
     '''
-
+'''
 
 import openai
 from openai import AsyncOpenAI
