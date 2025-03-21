@@ -92,8 +92,9 @@ def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
         ai_answer = asyncio.run(generate_story(query))
         return ai_answer
     else:
-        print("\n 近似 5 件の類似 Summary を元に新しい Summary を生成しました")
         T5_answer = generate_summary_from_multiple_docs(summaries)
+        print("\n 近似 5 件の類似 Summary を元に新しい Summary を生成しました")
+        print(T5_answer)
         '''
         #print("\n T5 が生成した Summary:")
         #print(T5_answer)
