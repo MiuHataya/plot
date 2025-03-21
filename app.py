@@ -121,7 +121,7 @@ def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
         '''
         T5_answer = generate_summary_from_multiple_docs("The novel concerns the dwelling of the Darkovan Order of the Renunciates. It also concerns Magda, a Terran, who goes to Thendara House in exchange for the Free Amazon Jaelle who has become the wife of an Earthman.")
         #ai_answer = asyncio.run(refine_summary_with_openai(T5_answer))
-        return jsonify({"great": })
+        return jsonify({"great": T5_answer})
 
 
 @app.route("/", methods=["GET"])
