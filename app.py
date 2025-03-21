@@ -18,6 +18,7 @@ from sentence_transformers import SentenceTransformer
 import numpy as np
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
+import asyncio
 
 # 公開された Google スプレッドシートの 読み込み
 df = pd.read_csv(CSV_URL)
@@ -44,7 +45,58 @@ if os.path.exists(FILE_PATH):
     print("doc_embeddings.npy をロードしました！")
 else:
     print("エラー: doc_embeddings.npy が見つかりません！")
-    
+
+import openai
+from openai import AsyncOpenAI
+
+# Case 1: OpenAI を使った ０ からの生成関数
+client = AsyncOpenAI(api_key=OPENAI_API_KEY)
+async def generate_story(prompt, model="gpt-3.5-turbo", max_tokens=300):
+    try:
+        response = await client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=max_tokens, 
+            temperature=0.8,
+        )
+        # Access the content in the latest response format
+        story = response.choices[0].message.content
+        return story
+        
+    except Exception as e:
+        return f"An error occurred: {e}"
+
+# Case 2: T5 による新しい Summary 生成関数
+def generate_summary_from_multiple_docs(docs, prefix="create a coherent story summary: "):
+    combined_text = " ".join(docs)
+    input_text = prefix + combined_text
+    inputs = tokenizer_t5(input_text, return_tensors="pt", padding=True, truncation=True, max_length=256)
+
+    with torch.no_grad():
+        output_ids = model_t5.generate(
+            **inputs,
+            min_length=100,
+            max_length=300,
+            num_beams=5,
+            no_repeat_ngram_size=2,
+            early_stopping=False
+        )
+    return tokenizer_t5.decode(output_ids[0], skip_special_tokens=True)
+
+# OpenAI API を使って Summary を自然な文章にする関数
+async def refine_summary_with_openai(summary):
+    response = await client.chat.completions.create(
+        model="gpt-4",
+        messages=[
+            {"role": "system", "content": "You are an expert at writing natural and engaging summaries."},
+            {"role": "user", "content": f"Please refine the following summary to make it more natural and engaging:\n\n{summary}"}
+        ],
+        temperature=0.7
+    )
+    return response.choices[0].message.content
+
 
 # ユーザーの質問を受け取る
 def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
@@ -88,8 +140,8 @@ def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
     # Switch はここで
     if not summaries:
         print("該当なし (新しい Summary を生成します)")
-        #ai_answer = asyncio.run(generate_story(query))
-        return jsonify({"error": "ナッシング！！"})
+        ai_answer = asyncio.run(generate_story(query))
+        #return jsonify({"error": "ナッシング！！"})
     else:
         #T5_answer = generate_summary_from_multiple_docs(summaries)
         print("\n 近似 5 件の類似 Summary を元に新しい Summary を生成しました")
@@ -97,23 +149,18 @@ def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
         #print("\n T5 が生成した Summary:")
         #print(T5_answer)
         '''
-        #ai_answer = asyncio.run(refine_summary_with_openai(T5_answer))
-        return jsonify({"error": "ありりんご！"})
+        ai_answer = asyncio.run(refine_summary_with_openai(T5_answer))
+        #return jsonify({"error": "ありりんご！"})
 
 
-import asyncio
 @app.route("/", methods=["GET"])
 def get_summary(): 
     query = request.args.get("query", default="genre: fantasy, summary: A young girl, Miu starts school and meets a special friend.")
-    TARGET_SIMILARITY = float(request.args.get("TARGET_SIMILARITY", 0.9))
+    TARGET_SIMILARITY = float(request.args.get("TARGET_SIMILARITY", 0.4))
     SIMILARITY_THRESHOLD = float(request.args.get("SIMILARITY_THRESHOLD", 0.1))
     
-    return process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD)
-
-    '''
     ai_answer = process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD)
     return jsonify({"result": ai_answer})
-    '''
 
 '''
 def run_async_function(async_func, *args):
