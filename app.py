@@ -7,7 +7,6 @@ load_dotenv()  # .env の読み込み
 app = Flask(__name__)
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-print(OPENAI_API_KEY)
 SHEET_ID = os.getenv("SHEET_ID")
 CSV_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv"
 
@@ -49,8 +48,8 @@ else:
 
 # ユーザーの質問を受け取る
 def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
-    #query_embedding = embedding_model.encode([query])
-    query_embedding = np.array(embedding_model.encode([query])).astype('float32')
+    query_embedding = embedding_model.encode([query])
+    #query_embedding = np.array(embedding_model.encode([query])).astype('float32')
 
     # FAISS ベクトル検索エンジンを構築
     dimension = doc_embeddings.shape[1]
@@ -105,7 +104,7 @@ def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
 import asyncio
 @app.route("/", methods=["GET"])
 def get_summary(): 
-    query = request.args.get("query", default="genre: fantasy, summary: A young girl, Miu starts school and meets a special friend.")
+    #query = request.args.get("query", default="genre: fantasy, summary: A young girl, Miu starts school and meets a special friend.")
     TARGET_SIMILARITY = float(request.args.get("TARGET_SIMILARITY", 0.4))
     SIMILARITY_THRESHOLD = float(request.args.get("SIMILARITY_THRESHOLD", 0.1))
     
