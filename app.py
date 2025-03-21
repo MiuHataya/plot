@@ -48,8 +48,8 @@ else:
 
 # ユーザーの質問を受け取る
 def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
-    query_embedding = embedding_model.encode([query])
-    #query_embedding = np.array(embedding_model.encode([query])).astype('float32')
+    #query_embedding = embedding_model.encode([query])
+    query_embedding = np.array(embedding_model.encode([query])).astype('float32')
 
     # FAISS ベクトル検索エンジンを構築
     dimension = doc_embeddings.shape[1]
@@ -91,7 +91,7 @@ def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
         #ai_answer = asyncio.run(generate_story(query))
         return jsonify({"error": "ナッシング！！"})
     else:
-        T5_answer = generate_summary_from_multiple_docs(summaries)
+        #T5_answer = generate_summary_from_multiple_docs(summaries)
         print("\n 近似 5 件の類似 Summary を元に新しい Summary を生成しました")
         '''
         #print("\n T5 が生成した Summary:")
@@ -104,7 +104,7 @@ def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
 import asyncio
 @app.route("/", methods=["GET"])
 def get_summary(): 
-    #query = request.args.get("query", default="genre: fantasy, summary: A young girl, Miu starts school and meets a special friend.")
+    query = request.args.get("query", default="genre: fantasy, summary: A young girl, Miu starts school and meets a special friend.")
     TARGET_SIMILARITY = float(request.args.get("TARGET_SIMILARITY", 0.4))
     SIMILARITY_THRESHOLD = float(request.args.get("SIMILARITY_THRESHOLD", 0.1))
     
