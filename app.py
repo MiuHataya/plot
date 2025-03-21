@@ -50,11 +50,10 @@ import openai
 from openai import AsyncOpenAI
 
 # Case 2: T5 による新しい Summary 生成関数
-def generate_summary_from_multiple_docs(story, prefix="create a coherent story summary: "):
-    combined_text = " ".join(story)
+def generate_summary_from_multiple_docs(input_doc, prefix="create a coherent story summary: "):
+    combined_text = " ".join(input_doc)
     input_text = prefix + combined_text
     inputs = tokenizer_t5(input_text, return_tensors="pt", padding=True, truncation=True, max_length=256)
-    
     with torch.no_grad():
         output_ids = model_t5.generate(
             **inputs,
@@ -65,7 +64,6 @@ def generate_summary_from_multiple_docs(story, prefix="create a coherent story s
             early_stopping=False
         )
     return tokenizer_t5.decode(output_ids[0], skip_special_tokens=True)
-
 
 
 # ユーザーの質問を受け取る
