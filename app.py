@@ -105,7 +105,7 @@ import asyncio
 @app.route("/", methods=["GET"])
 def get_summary(): 
     query = request.args.get("query", default="genre: fantasy, summary: A young girl, Miu starts school and meets a special friend.")
-    TARGET_SIMILARITY = float(request.args.get("TARGET_SIMILARITY", 0.4))
+    TARGET_SIMILARITY = float(request.args.get("TARGET_SIMILARITY", 0.9))
     SIMILARITY_THRESHOLD = float(request.args.get("SIMILARITY_THRESHOLD", 0.1))
     
     return process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD)
