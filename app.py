@@ -45,6 +45,11 @@ if os.path.exists(FILE_PATH):
     print("doc_embeddings.npy をロードしました！")
 else:
     print("エラー: doc_embeddings.npy が見つかりません！")
+
+# FAISS ベクトル検索エンジンを構築
+dimension = doc_embeddings.shape[1]
+index = faiss.IndexFlatL2(dimension)
+index.add(doc_embeddings)
     
 
 # ユーザーの質問を受け取る
@@ -52,10 +57,6 @@ def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
     #query_embedding = embedding_model.encode([query])
     query_embedding = np.array(embedding_model.encode([query])).astype('float32')
 
-    # FAISS ベクトル検索エンジンを構築
-    dimension = doc_embeddings.shape[1]
-    index = faiss.IndexFlatL2(dimension)
-    index.add(doc_embeddings)
     # FAISS を使って類似文書を検索 (上位5件)
     D, I = index.search(query_embedding, k=5)
 
