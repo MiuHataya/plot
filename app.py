@@ -72,6 +72,19 @@ def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
     print("上位5件の類似文書 (TARGET_SIMILARITY に最も近いものを選択):\n")
     '''
 
+    summaries = []
+    for doc, sim in sorted_docs:
+        doc_data = dict(item.split(": ", 1) for item in doc.split(",  ") if ": " in item)
+        if abs(sim - TARGET_SIMILARITY) <= SIMILARITY_THRESHOLD:
+            title_text = doc_data.get("title", "No title available")
+            genre_text = doc_data.get("genre", "No genre available")
+            summary_text = doc_data.get("summary", "No summary available")
+            summaries.append(summary_text)
+            '''
+            print(f" 類似度: {sim:.2f} | Title: {title_text} | Genre: {genre_text}")
+            print(f" Summary: {summary_text}\n")
+            '''
+
     test = []
     test.append(query)
     test.append(TARGET_SIMILARITY)
@@ -79,7 +92,7 @@ def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
     return test
 
     
-@app.route("/summary", methods=["GET"])
+@app.route("/", methods=["GET"])
 def get_summary(): 
     query = request.args.get("query", default="genre: fantasy, summary: A young girl, Miu starts school and meets a special friend.")
     TARGET_SIMILARITY = float(request.args.get("TARGET_SIMILARITY", 0.4))
@@ -89,7 +102,7 @@ def get_summary():
     return jsonify({"result": ai_answer})
 
 
-@app.route("/")
+@app.route("/summary")
 def index():
     return jsonify({"message": "Welcome to the Plot Generation API!"})
 
