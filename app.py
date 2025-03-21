@@ -51,8 +51,8 @@ from openai import AsyncOpenAI
 
 
 # Case 2: T5 による新しい Summary 生成関数
-def generate_summary_from_multiple_docs(docs, prefix="create a coherent story summary: "):
-    combined_text = " ".join(docs)
+def generate_summary_from_multiple_docs(story, prefix="create a coherent story summary: "):
+    combined_text = " ".join(story)
     input_text = prefix + combined_text
     inputs = tokenizer_t5(input_text, return_tensors="pt", padding=True, truncation=True, max_length=256)
 
@@ -119,9 +119,9 @@ def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
         #print("\n T5 が生成した Summary:")
         #print(T5_answer)
         '''
-        #T5_answer = generate_summary_from_multiple_docs(summaries)
+        T5_answer = generate_summary_from_multiple_docs("The novel concerns the dwelling of the Darkovan Order of the Renunciates. It also concerns Magda, a Terran, who goes to Thendara House in exchange for the Free Amazon Jaelle who has become the wife of an Earthman.")
         #ai_answer = asyncio.run(refine_summary_with_openai(T5_answer))
-        return jsonify({"great": summaries})
+        return jsonify({"great": })
 
 
 @app.route("/", methods=["GET"])
