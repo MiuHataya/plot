@@ -149,8 +149,8 @@ def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
         #print(T5_answer)
         '''
         T5_answer = generate_summary_from_multiple_docs(summaries)
-        ai_answer = asyncio.run(refine_summary_with_openai(T5_answer))
-        return jsonify({"great": ai_answer})
+        #ai_answer = asyncio.run(refine_summary_with_openai(T5_answer))
+        return jsonify({"great": T5_answer})
 
 
 @app.route("/", methods=["GET"])
