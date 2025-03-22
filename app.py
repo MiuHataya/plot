@@ -28,8 +28,6 @@ print("Googleスプレッドシートからデータを取得しました！")
 embedding_model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
 # T5 (生成) モデルのロード
 tokenizer_t5 = T5Tokenizer.from_pretrained("t5-small")
-model_t5 = T5ForConditionalGeneration.from_pretrained("t5-small")
-model_t5.to("cpu")
 
 # データベースを作成
 docs = df.apply(lambda row: ",  ".join(f"{col}: {val}" for col, val in zip(df.columns, row)), axis=1).tolist()
@@ -62,6 +60,7 @@ def generate_summary_from_multiple_docs(input_doc, prefix="create a coherent sto
     
     print(inputs)  # ✅ デバッグ用
     assert inputs["input_ids"].size(1) > 0, "Error: input_ids is empty!"  # ✅ 入力チェック
+    model_t5 = T5ForConditionalGeneration.from_pretrained("t5-small")
     
     with torch.no_grad():
         output_ids = model_t5.generate(
