@@ -60,11 +60,11 @@ def generate_summary_from_multiple_docs(input_doc, prefix="create a coherent sto
     inputs = tokenizer_t5(input_text, return_tensors="pt", padding=True, truncation=True, max_length=256)
     print (inputs)
     with torch.no_grad():
-    output_ids = model_t5.generate(
-        **inputs,
-        max_length=150,
-        num_beams=3
-    )
+        output_ids = model_t5.generate(
+            **inputs,
+            max_length=150,
+            num_beams=3
+        )
     '''
     with torch.no_grad():
         output_ids = model_t5.generate(
