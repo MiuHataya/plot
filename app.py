@@ -20,6 +20,10 @@ import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 import asyncio
 
+# **デバイスの設定**
+device = "cuda" if torch.cuda.is_available() else "cpu"
+print(f"Using device: {device}")
+
 # 公開された Google スプレッドシートの 読み込み
 df = pd.read_csv(CSV_URL)
 print("Googleスプレッドシートからデータを取得しました！")
@@ -29,7 +33,7 @@ embedding_model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
 # T5 (生成) モデルのロード
 tokenizer_t5 = T5Tokenizer.from_pretrained("t5-small")
 model_t5 = T5ForConditionalGeneration.from_pretrained("t5-small")
-model_t5.to("cpu")
+model_t5.to(device)
 
 # データベースを作成
 docs = df.apply(lambda row: ",  ".join(f"{col}: {val}" for col, val in zip(df.columns, row)), axis=1).tolist()
@@ -58,6 +62,7 @@ def generate_summary_from_multiple_docs(input_doc, prefix="create a coherent sto
     combined_text = " ".join(input_doc)
     input_text = prefix + combined_text
     inputs = tokenizer_t5(input_text, return_tensors="pt", padding=True, truncation=True, max_length=256)
+    inputs = {key: value.to(device) for key, value in inputs.items()}  #デバイスへ移動
     with torch.no_grad():
         output_ids = model_t5.generate(
             **inputs,
@@ -82,7 +87,8 @@ def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
     # コサイン類似度を計算
     query_vector = query_embedding / np.linalg.norm(query_embedding)  # 正規化
     doc_vectors = doc_embeddings / np.linalg.norm(doc_embeddings, axis=1, keepdims=True)  # 正規化
-    similarities = cosine_similarity(query_vector, doc_vectors)[0]
+    similarities = cosine_similarity(query_vector.cpu().numpy(), doc_vectors.cpu().numpy())[0]  # CPU に戻す
+    #similarities = cosine_similarity(query_vector, doc_vectors)[0]
 
     # ターゲット類似度に最も近い文書を取得
     closest_docs = [(docs[i], similarities[i]) for i in range(len(docs))]
