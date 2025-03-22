@@ -52,6 +52,8 @@ else:
 import openai
 from openai import AsyncOpenAI
 
+import time
+
 # Case 2: T5 による新しい Summary 生成関数
 def generate_summary_from_multiple_docs(input_doc, prefix="create a coherent story summary: "):
     combined_text = " ".join(input_doc)
