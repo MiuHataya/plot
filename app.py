@@ -56,7 +56,6 @@ from openai import AsyncOpenAI
 # Case 2: T5 による新しい Summary 生成関数
 def generate_summary_from_multiple_docs(input_doc, prefix="create a coherent story summary: "):
     combined_text = " ".join(input_doc)
-    print(combined_text)
     input_text = prefix + combined_text
     inputs = tokenizer_t5(input_text, return_tensors="pt", padding=True, truncation=True, max_length=256)
     with torch.no_grad():
@@ -68,7 +67,8 @@ def generate_summary_from_multiple_docs(input_doc, prefix="create a coherent sto
             no_repeat_ngram_size=2,
             early_stopping=False
         )
-    return tokenizer_t5.decode(output_ids[0], skip_special_tokens=True)
+    T5_gene = tokenizer_t5.decode(output_ids[0], skip_special_tokens=True)
+    print(T5_gene)
 
 
 # ユーザーの質問を受け取る
