@@ -87,6 +87,7 @@ def generate_summary_from_multiple_docs(input_doc, prefix="create a coherent sto
     end = time.time()
     T5_gene = tokenizer_t5.decode(output_ids[0], skip_special_tokens=True)
     print(end - start)
+    print(T5_gene)
     return T5_gene
 
 '''
