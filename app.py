@@ -43,6 +43,10 @@ FILE_PATH = "./doc_embeddings.npy"
 if os.path.exists(FILE_PATH):
     doc_embeddings = np.load(FILE_PATH)
     print("doc_embeddings.npy をロードしました！")
+    # FAISS ベクトル検索エンジンを構築
+    dimension = doc_embeddings.shape[1]
+    index = faiss.IndexFlatL2(dimension)
+    index.add(doc_embeddings)
 else:
     print("エラー: doc_embeddings.npy が見つかりません！")
 
@@ -51,8 +55,8 @@ from openai import AsyncOpenAI
 
 # Case 2: T5 による新しい Summary 生成関数
 def generate_summary_from_multiple_docs(input_doc, prefix="create a coherent story summary: "):
-    print(input_doc)
     combined_text = " ".join(input_doc)
+    print(combined_text)
     input_text = prefix + combined_text
     inputs = tokenizer_t5(input_text, return_tensors="pt", padding=True, truncation=True, max_length=256)
     with torch.no_grad():
@@ -71,11 +75,6 @@ def generate_summary_from_multiple_docs(input_doc, prefix="create a coherent sto
 def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
     #query_embedding = embedding_model.encode([query])
     query_embedding = np.array(embedding_model.encode([query])).astype('float32')
-
-    # FAISS ベクトル検索エンジンを構築
-    dimension = doc_embeddings.shape[1]
-    index = faiss.IndexFlatL2(dimension)
-    index.add(doc_embeddings)
     # FAISS を使って類似文書を検索 (上位5件)
     D, I = index.search(query_embedding, k=5)
 
