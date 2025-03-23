@@ -52,12 +52,10 @@ inputs = tokenizer_t5(dummy_text, return_tensors="pt", padding=True, truncation=
 with torch.no_grad():
     model_t5.generate(
         **inputs,
-        max_length=50,
         min_length=10,
+        max_length=50,
         num_beams=2,
-        do_sample=False,
-        top_p=1.0,
-        repetition_penalty=1.0,
+        no_repeat_ngram_size=2,
         early_stopping=True 
     )
 print("✅ T5モデルのウォームアップ完了！")
