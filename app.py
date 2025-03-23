@@ -45,6 +45,24 @@ if os.path.exists(FILE_PATH):
 else:
     print("エラー: doc_embeddings.npy が見つかりません！")
 
+
+def warmup_t5():
+    print("T5モデルのウォームアップ開始！")
+    """T5モデルを事前にウォームアップする"""
+    dummy_text = "This is test document."
+    inputs = tokenizer_t5(dummy_text, return_tensors="pt", padding=True, truncation=True, max_length=256)
+    with torch.no_grad():
+        model_t5.generate(
+            **inputs,
+            min_length=50,
+            max_length=150,
+            num_beams=3,
+            early_stopping=True
+        )
+
+    print("✅ T5モデルのウォームアップ完了！")
+
+
 import openai
 from openai import AsyncOpenAI
 import time
@@ -173,7 +191,7 @@ def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
         #print("\n T5 が生成した Summary:")
         #print(T5_answer)
         '''
-        T5_answer = generate_summary_from_multiple_docs("The novel concerns the dwelling of the Darkovan Order of the Renunciates. It also concerns Magda, a Terran, who goes to Thendara House in exchange for the Free Amazon Jaelle who has become the wife of an Earthman.")
+        T5_answer = generate_summary_from_multiple_docs(summaries)
         #ai_answer = asyncio.run(refine_summary_with_openai(T5_answer))
         return jsonify({"great": T5_answer})
         
@@ -183,7 +201,8 @@ def get_summary():
     query = request.args.get("query", default="genre: fantasy, summary: A young girl, Miu starts school and meets a special friend.")
     TARGET_SIMILARITY = float(request.args.get("TARGET_SIMILARITY", 0.4))
     SIMILARITY_THRESHOLD = float(request.args.get("SIMILARITY_THRESHOLD", 0.1))
-    
+
+    warmup_t5()
     ai_answer = process_query(query,TARGET_SIMILARITY,SIMILARITY_THRESHOLD)
     #return ai_answer
     return jsonify({"result": ai_answer})
