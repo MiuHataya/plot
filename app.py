@@ -155,21 +155,19 @@ def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
             genre_text = doc_data.get("genre", "No genre available")
             summary_text = doc_data.get("summary", "No summary available")
             summaries.append(summary_text)
-            '''
-            print(f" 類似度: {sim:.2f} | Title: {title_text} | Genre: {genre_text}")
-            print(f" Summary: {summary_text}\n")
-            '''
 
     # Switch はここで
     if not summaries:
         print("該当なし (新しい Summary を生成します)")
         ai_answer = asyncio.run(generate_story(query))
-        return jsonify({"ナッシング！！": ai_answer})
+        return ai_answer
+        #return jsonify({"ナッシング！！": ai_answer})
     else:
-        print("\n 近似 5 件の類似 Summary を元に新しい Summary を生成しました")
+        print("近似 5 件の類似 Summary を元に新しい Summary を生成しました")
         T5_answer = generate_summary_from_multiple_docs(summaries)
         ai_answer = asyncio.run(refine_summary_with_openai(T5_answer))
-        return jsonify({"great": ai_answer})
+        return ai_answer
+        #return jsonify({"great": ai_answer})
         
 
 @app.route("/", methods=["GET"])
@@ -179,7 +177,7 @@ def get_summary():
     SIMILARITY_THRESHOLD = float(request.args.get("SIMILARITY_THRESHOLD", 0.1))
 
     ai_answer = process_query(query,TARGET_SIMILARITY,SIMILARITY_THRESHOLD)
-    return ai_answer
+    return jsonify({"query": query, "\n\nresult": ai_answer})
     #return jsonify({"result": ai_answer})
 
 '''
