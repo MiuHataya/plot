@@ -95,7 +95,7 @@ def generate_summary_from_multiple_docs(input_doc, prefix="create a coherent sto
 
 # OpenAI API を使って Summary を自然な文章にする関数
 async def refine_summary_with_openai(summary):
-    print("summary: "summary)
+    print("summary: ", summary)
     response = await client.chat.completions.create(
         model="gpt-4",
         messages=[
