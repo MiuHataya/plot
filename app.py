@@ -49,7 +49,7 @@ else:
 dimension = doc_embeddings.shape[1]
 index = faiss.IndexFlatL2(dimension)
 index.add(doc_embeddings)
-print(FAISS ベクトル検索エンジンを構築)
+print("FAISS ベクトル検索エンジンを構築")
 
 import openai
 from openai import AsyncOpenAI
