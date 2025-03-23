@@ -63,13 +63,13 @@ def generate_summary_from_multiple_docs(input_doc, prefix="create a coherent sto
     start = time.time()
     
     with torch.no_grad():
-    output_ids = model_t5.generate(
-        **inputs,
-        min_length=50,  # 100 → 50 に減らす
-        max_length=150,  # 300 → 150 に減らす
-        num_beams=3,  # 5 → 3 に減らす
-        early_stopping=True  # False → True に変更
-    )
+        output_ids = model_t5.generate(
+            **inputs,
+            min_length=50,  # 100 → 50 に減らす
+            max_length=150,  # 300 → 150 に減らす
+            num_beams=3,  # 5 → 3 に減らす
+            early_stopping=True  # False → True に変更
+        )
     '''
     with torch.no_grad():
         output_ids = model_t5.generate(
