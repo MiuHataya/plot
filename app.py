@@ -93,7 +93,7 @@ def generate_summary_from_multiple_docs(input_doc, prefix="create a coherent sto
     print(end - start)
     print(T5_gene)
     return T5_gene
-'''
+
 # OpenAI API を使って Summary を自然な文章にする関数
 async def refine_summary_with_openai(summary):
     response = await client.chat.completions.create(
@@ -105,7 +105,6 @@ async def refine_summary_with_openai(summary):
         temperature=0.7
     )
     return response.choices[0].message.content
-'''
 
 
 # ユーザーの質問を受け取る
