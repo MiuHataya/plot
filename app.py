@@ -42,12 +42,14 @@ FILE_PATH = "./doc_embeddings.npy"
 if os.path.exists(FILE_PATH):
     doc_embeddings = np.load(FILE_PATH)
     print("doc_embeddings.npy をロードしました！")
-    # FAISS ベクトル検索エンジンを構築
-    dimension = doc_embeddings.shape[1]
-    index = faiss.IndexFlatL2(dimension)
-    index.add(doc_embeddings)
 else:
     print("エラー: doc_embeddings.npy が見つかりません！")
+
+# FAISS ベクトル検索エンジンを構築
+dimension = doc_embeddings.shape[1]
+index = faiss.IndexFlatL2(dimension)
+index.add(doc_embeddings)
+print(FAISS ベクトル検索エンジンを構築)
 
 import openai
 from openai import AsyncOpenAI
