@@ -7,7 +7,6 @@ load_dotenv()  # .env の読み込み
 app = Flask(__name__)
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-print (OPENAI_API_KEY)
 SHEET_ID = os.getenv("SHEET_ID")
 CSV_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv"
 
@@ -159,7 +158,8 @@ def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
         #print(T5_answer)
         '''
         T5_answer = generate_summary_from_multiple_docs(summaries)
-        ai_answer = asyncio.run(refine_summary_with_openai(T5_answer))
+        ai_answer = await refine_summary_with_openai(T5_answer)
+        #ai_answer = asyncio.run(refine_summary_with_openai(T5_answer))
         return jsonify({"great": ai_answer})
         
 
