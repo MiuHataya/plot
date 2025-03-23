@@ -46,7 +46,7 @@ else:
     print("エラー: doc_embeddings.npy が見つかりません！")
 
 print("T5モデルのウォームアップ開始！")
-"""T5モデルを事前にウォームアップする"""
+#T5モデルを事前にウォームアップする(T5モデルの初回遅延 (Lazy Initialization)対策)
 dummy_text = "This is test document."
 inputs = tokenizer_t5(dummy_text, return_tensors="pt", padding=True, truncation=True, max_length=256)
 with torch.no_grad():
@@ -54,9 +54,8 @@ with torch.no_grad():
         **inputs,
         max_length=50,
         min_length=10,
-        num_beams=1,
+        num_beams=2,
         do_sample=False,
-        top_k=0,
         top_p=1.0,
         repetition_penalty=1.0,
         early_stopping=True 
