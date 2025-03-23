@@ -45,22 +45,19 @@ if os.path.exists(FILE_PATH):
 else:
     print("エラー: doc_embeddings.npy が見つかりません！")
 
-
-def warmup_t5():
-    print("T5モデルのウォームアップ開始！")
-    """T5モデルを事前にウォームアップする"""
-    dummy_text = "This is test document."
-    inputs = tokenizer_t5(dummy_text, return_tensors="pt", padding=True, truncation=True, max_length=256)
-    with torch.no_grad():
-        model_t5.generate(
-            **inputs,
-            min_length=50,
-            max_length=150,
-            num_beams=3,
-            early_stopping=True
-        )
-
-    print("✅ T5モデルのウォームアップ完了！")
+print("T5モデルのウォームアップ開始！")
+"""T5モデルを事前にウォームアップする"""
+dummy_text = "This is test document."
+inputs = tokenizer_t5(dummy_text, return_tensors="pt", padding=True, truncation=True, max_length=256)
+with torch.no_grad():
+    model_t5.generate(
+        **inputs,
+        min_length=50,
+        max_length=150,
+        num_beams=3,
+        early_stopping=True
+    )
+print("✅ T5モデルのウォームアップ完了！")
 
 
 import openai
@@ -69,7 +66,7 @@ import time
 
 # Case 2: T5 による新しい Summary 生成関数
 def generate_summary_from_multiple_docs(input_doc, prefix="create a coherent story summary: "):
-    print (input_doc)
+    print ("呼んだ？呼んだよね今")
     combined_text = " ".join(input_doc)
     input_text = prefix + combined_text
     inputs = tokenizer_t5(input_text, return_tensors="pt", padding=True, truncation=True, max_length=256)
@@ -202,7 +199,7 @@ def get_summary():
     TARGET_SIMILARITY = float(request.args.get("TARGET_SIMILARITY", 0.4))
     SIMILARITY_THRESHOLD = float(request.args.get("SIMILARITY_THRESHOLD", 0.1))
 
-    warmup_t5()
+    #warmup_t5()
     ai_answer = process_query(query,TARGET_SIMILARITY,SIMILARITY_THRESHOLD)
     #return ai_answer
     return jsonify({"result": ai_answer})
