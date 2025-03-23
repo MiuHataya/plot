@@ -201,8 +201,8 @@ def get_summary():
 
     #warmup_t5()
     ai_answer = process_query(query,TARGET_SIMILARITY,SIMILARITY_THRESHOLD)
-    #return ai_answer
-    return jsonify({"result": ai_answer})
+    return ai_answer
+    #return jsonify({"result": ai_answer})
 
 '''
 def run_async_function(async_func, *args):
