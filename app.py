@@ -91,11 +91,11 @@ def generate_summary_from_multiple_docs(input_doc, prefix="create a coherent sto
     end = time.time()
     T5_gene = tokenizer_t5.decode(output_ids[0], skip_special_tokens=True)
     print(end - start)
-    print(T5_gene)
     return T5_gene
 
 # OpenAI API を使って Summary を自然な文章にする関数
 async def refine_summary_with_openai(summary):
+    print("summary: "summary)
     response = await client.chat.completions.create(
         model="gpt-4",
         messages=[
@@ -158,8 +158,8 @@ def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
         #print(T5_answer)
         '''
         T5_answer = generate_summary_from_multiple_docs(summaries)
-        #ai_answer = asyncio.run(refine_summary_with_openai(T5_answer))
-        return jsonify({"great": T5_answer})
+        ai_answer = asyncio.run(refine_summary_with_openai(T5_answer))
+        return jsonify({"great": ai_answer})
         
 
 @app.route("/", methods=["GET"])
