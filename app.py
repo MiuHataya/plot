@@ -176,7 +176,7 @@ def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
         T5_answer = generate_summary_from_multiple_docs("The novel concerns the dwelling of the Darkovan Order of the Renunciates. It also concerns Magda, a Terran, who goes to Thendara House in exchange for the Free Amazon Jaelle who has become the wife of an Earthman.")
         #ai_answer = asyncio.run(refine_summary_with_openai(T5_answer))
         return jsonify({"great": T5_answer})
-
+        
 
 @app.route("/", methods=["GET"])
 def get_summary(): 
@@ -184,13 +184,7 @@ def get_summary():
     TARGET_SIMILARITY = float(request.args.get("TARGET_SIMILARITY", 0.4))
     SIMILARITY_THRESHOLD = float(request.args.get("SIMILARITY_THRESHOLD", 0.1))
     
-    dummy_input = ["This is a test input"]
-    generate_summary_from_multiple_docs(dummy_input)
-    print("Model warmed up")
-
-    ai_answer = generate_summary_from_multiple_docs(["The novel concerns the dwelling of the Darkovan Order of the Renunciates. It also concerns Magda, a Terran, who goes to Thendara House in exchange for the Free Amazon Jaelle who has become the wife of an Earthman."])
-    if ai_answer is None:
-        return jsonify({"error": "Summary generation failed"}), 500  # ❌ None を防ぐ
+    ai_answer = process_query(query,TARGET_SIMILARITY,SIMILARITY_THRESHOLD)
     #return ai_answer
     return jsonify({"result": ai_answer})
 
@@ -210,5 +204,6 @@ def index():
     return jsonify({"message": "Welcome to the Plot Generation API!"})
 
 if __name__ == "__main__":
+    from waitress import serve
     port = int(os.getenv("PORT", 8080))
     app.run(host="0.0.0.0", port=port)
