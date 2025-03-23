@@ -45,15 +45,8 @@ if os.path.exists(FILE_PATH):
 else:
     print("エラー: doc_embeddings.npy が見つかりません！")
 
-# FAISS ベクトル検索エンジンを構築
-dimension = doc_embeddings.shape[1]
-index = faiss.IndexFlatL2(dimension)
-index.add(doc_embeddings)
-print("FAISS ベクトル検索エンジンを構築")
-
 import openai
 from openai import AsyncOpenAI
-
 import time
 
 # Case 2: T5 による新しい Summary 生成関数
@@ -134,6 +127,11 @@ def generate_summary_from_multiple_docs(input_doc, prefix="create a coherent sto
 def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
     #query_embedding = embedding_model.encode([query])
     query_embedding = np.array(embedding_model.encode([query])).astype('float32')
+    # FAISS ベクトル検索エンジンを構築
+    dimension = doc_embeddings.shape[1]
+    index = faiss.IndexFlatL2(dimension)
+    index.add(doc_embeddings)
+    print("FAISS ベクトル検索エンジンを構築")
     # FAISS を使って類似文書を検索 (上位5件)
     D, I = index.search(query_embedding, k=5)
 
