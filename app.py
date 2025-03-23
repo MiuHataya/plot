@@ -93,6 +93,19 @@ def generate_summary_from_multiple_docs(input_doc, prefix="create a coherent sto
     print(T5_gene)
     return T5_gene
 
+# OpenAI API を使って Summary を自然な文章にする関数
+async def refine_summary_with_openai(summary):
+    response = await client.chat.completions.create(
+        model="gpt-4",
+        messages=[
+            {"role": "system", "content": "You are an expert at writing natural and engaging summaries."},
+            {"role": "user", "content": f"Please refine the following summary to make it more natural and engaging:\n\n{summary}"}
+        ],
+        temperature=0.7
+    )
+    return response.choices[0].message.content
+
+
 
 # ユーザーの質問を受け取る
 def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
@@ -145,8 +158,8 @@ def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
         #print(T5_answer)
         '''
         T5_answer = generate_summary_from_multiple_docs(summaries)
-        #ai_answer = asyncio.run(refine_summary_with_openai(T5_answer))
-        return jsonify({"great": T5_answer})
+        ai_answer = asyncio.run(refine_summary_with_openai(T5_answer))
+        return jsonify({"great": ai_answer})
         
 
 @app.route("/", methods=["GET"])
