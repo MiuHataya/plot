@@ -19,6 +19,7 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 import asyncio
+loop = asyncio.get_event_loop()
 
 # 公開された Google スプレッドシートの 読み込み
 df = pd.read_csv(CSV_URL)
@@ -159,7 +160,8 @@ async def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
         '''
         T5_answer = generate_summary_from_multiple_docs(summaries)
         #ai_answer = await refine_summary_with_openai(T5_answer)
-        ai_answer = asyncio.run(refine_summary_with_openai(T5_answer))
+        #ai_answer = asyncio.run(refine_summary_with_openai(T5_answer))
+        ai_answer = loop.run_until_complete(refine_summary_with_openai(T5_answer))
         return jsonify({"great": ai_answer})
         
 
