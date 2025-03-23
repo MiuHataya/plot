@@ -108,7 +108,7 @@ async def refine_summary_with_openai(summary):
 
 
 # ユーザーの質問を受け取る
-def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
+async def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
     #query_embedding = embedding_model.encode([query])
     query_embedding = np.array(embedding_model.encode([query])).astype('float32')
     # FAISS ベクトル検索エンジンを構築
@@ -169,8 +169,8 @@ def get_summary():
     TARGET_SIMILARITY = float(request.args.get("TARGET_SIMILARITY", 0.4))
     SIMILARITY_THRESHOLD = float(request.args.get("SIMILARITY_THRESHOLD", 0.1))
 
-    #warmup_t5()
-    ai_answer = process_query(query,TARGET_SIMILARITY,SIMILARITY_THRESHOLD)
+    ai_answer = asyncio.run(process_query(query,TARGET_SIMILARITY,SIMILARITY_THRESHOLD))
+    #ai_answer = process_query(query,TARGET_SIMILARITY,SIMILARITY_THRESHOLD)
     return ai_answer
     #return jsonify({"result": ai_answer})
 
