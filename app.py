@@ -19,7 +19,6 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 import asyncio
-loop = asyncio.get_event_loop()
 
 # 公開された Google スプレッドシートの 読み込み
 df = pd.read_csv(CSV_URL)
@@ -109,7 +108,7 @@ async def refine_summary_with_openai(summary):
 
 
 # ユーザーの質問を受け取る
-async def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
+def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
     #query_embedding = embedding_model.encode([query])
     query_embedding = np.array(embedding_model.encode([query])).astype('float32')
     # FAISS ベクトル検索エンジンを構築
@@ -160,8 +159,7 @@ async def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
         '''
         T5_answer = generate_summary_from_multiple_docs(summaries)
         #ai_answer = await refine_summary_with_openai(T5_answer)
-        #ai_answer = asyncio.run(refine_summary_with_openai(T5_answer))
-        ai_answer = loop.run_until_complete(refine_summary_with_openai(T5_answer))
+        ai_answer = asyncio.run(refine_summary_with_openai(T5_answer))
         return jsonify({"great": ai_answer})
         
 
@@ -171,8 +169,8 @@ def get_summary():
     TARGET_SIMILARITY = float(request.args.get("TARGET_SIMILARITY", 0.4))
     SIMILARITY_THRESHOLD = float(request.args.get("SIMILARITY_THRESHOLD", 0.1))
 
-    ai_answer = asyncio.run(process_query(query,TARGET_SIMILARITY,SIMILARITY_THRESHOLD))
-    #ai_answer = process_query(query,TARGET_SIMILARITY,SIMILARITY_THRESHOLD)
+    #ai_answer = asyncio.run(process_query(query,TARGET_SIMILARITY,SIMILARITY_THRESHOLD))
+    ai_answer = process_query(query,TARGET_SIMILARITY,SIMILARITY_THRESHOLD)
     return ai_answer
     #return jsonify({"result": ai_answer})
 
