@@ -56,10 +56,10 @@ import time
 
 # Case 2: T5 による新しい Summary 生成関数
 def generate_summary_from_multiple_docs(input_doc, prefix="create a coherent story summary: "):
+    print (input_doc)
     combined_text = " ".join(input_doc)
     input_text = prefix + combined_text
     inputs = tokenizer_t5(input_text, return_tensors="pt", padding=True, truncation=True, max_length=256)
-    print (inputs)
     start = time.time()
     
     with torch.no_grad():
@@ -184,6 +184,10 @@ def get_summary():
     TARGET_SIMILARITY = float(request.args.get("TARGET_SIMILARITY", 0.4))
     SIMILARITY_THRESHOLD = float(request.args.get("SIMILARITY_THRESHOLD", 0.1))
     
+    dummy_input = ["This is a test input"]
+    generate_summary_from_multiple_docs(dummy_input)
+    print("Model warmed up")
+
     ai_answer = generate_summary_from_multiple_docs(["The novel concerns the dwelling of the Darkovan Order of the Renunciates. It also concerns Magda, a Terran, who goes to Thendara House in exchange for the Free Amazon Jaelle who has become the wife of an Earthman."])
     if ai_answer is None:
         return jsonify({"error": "Summary generation failed"}), 500  # ❌ None を防ぐ
