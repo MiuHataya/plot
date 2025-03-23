@@ -54,7 +54,7 @@ with torch.no_grad():
         **inputs,
         max_length=50,
         min_length=10,
-        num_beams=1
+        num_beams=1,
         do_sample=False,
         top_k=0,
         top_p=1.0,
