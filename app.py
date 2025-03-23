@@ -63,6 +63,7 @@ print("✅ T5モデルのウォームアップ完了！")
 
 import openai
 from openai import AsyncOpenAI
+client = AsyncOpenAI(api_key=OPENAI_API_KEY)
 import time
 
 # Case 2: T5 による新しい Summary 生成関数
