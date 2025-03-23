@@ -66,6 +66,25 @@ from openai import AsyncOpenAI
 client = AsyncOpenAI(api_key=OPENAI_API_KEY)
 import time
 
+# Case 1: OpenAI を使った ０ からの生成関数
+async def generate_story(prompt, model="gpt-3.5-turbo", max_tokens=300):
+    try:
+        response = await client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=max_tokens, 
+            temperature=0.8,
+        )
+        # Access the content in the latest response format
+        story = response.choices[0].message.content
+        return story
+        
+    except Exception as e:
+        return f"An error occurred: {e}"
+
+
 # Case 2: T5 による新しい Summary 生成関数
 def generate_summary_from_multiple_docs(input_doc, prefix="create a coherent story summary: "):
     print ("呼んだ？呼んだよね今")
@@ -95,7 +114,6 @@ def generate_summary_from_multiple_docs(input_doc, prefix="create a coherent sto
 
 # OpenAI API を使って Summary を自然な文章にする関数
 async def refine_summary_with_openai(summary):
-    print("summary: ", summary)
     response = await client.chat.completions.create(
         model="gpt-4",
         messages=[
@@ -105,6 +123,7 @@ async def refine_summary_with_openai(summary):
         temperature=0.7
     )
     return response.choices[0].message.content
+    print("AI done!!")
 
 
 # ユーザーの質問を受け取る
@@ -127,11 +146,6 @@ def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
     # ターゲット類似度に最も近い文書を取得
     closest_docs = [(docs[i], similarities[i]) for i in range(len(docs))]
     sorted_docs = sorted(closest_docs, key=lambda x: abs(x[1] - TARGET_SIMILARITY))[:5]
-    '''
-    # 上位5件の Summary を表示
-    print(f"\n 質問: {query}\n")
-    print("上位5件の類似文書 (TARGET_SIMILARITY に最も近いものを選択):\n")
-    '''
 
     summaries = []
     for doc, sim in sorted_docs:
@@ -149,16 +163,11 @@ def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
     # Switch はここで
     if not summaries:
         print("該当なし (新しい Summary を生成します)")
-        #ai_answer = asyncio.run(generate_story(query))
-        return jsonify({"error": "ナッシング！！"})
+        ai_answer = asyncio.run(generate_story(query))
+        return jsonify({"ナッシング！！": ai_answer})
     else:
         print("\n 近似 5 件の類似 Summary を元に新しい Summary を生成しました")
-        '''
-        #print("\n T5 が生成した Summary:")
-        #print(T5_answer)
-        '''
         T5_answer = generate_summary_from_multiple_docs(summaries)
-        #ai_answer = await refine_summary_with_openai(T5_answer)
         ai_answer = asyncio.run(refine_summary_with_openai(T5_answer))
         return jsonify({"great": ai_answer})
         
@@ -169,7 +178,6 @@ def get_summary():
     TARGET_SIMILARITY = float(request.args.get("TARGET_SIMILARITY", 0.4))
     SIMILARITY_THRESHOLD = float(request.args.get("SIMILARITY_THRESHOLD", 0.1))
 
-    #ai_answer = asyncio.run(process_query(query,TARGET_SIMILARITY,SIMILARITY_THRESHOLD))
     ai_answer = process_query(query,TARGET_SIMILARITY,SIMILARITY_THRESHOLD)
     return ai_answer
     #return jsonify({"result": ai_answer})
