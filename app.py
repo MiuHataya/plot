@@ -128,6 +128,13 @@ async def refine_summary_with_openai(summary):
 
 # ユーザーの質問を受け取る
 def process_query(query, TARGET_SIMILARITY, SIMILARITY_THRESHOLD):
+    if (query = "Any story"){
+        print("なんでもいいのかな？")
+        ai_answer = asyncio.run(generate_story(query))
+        return ai_answer
+        break
+    }
+
     #query_embedding = embedding_model.encode([query])
     query_embedding = np.array(embedding_model.encode([query])).astype('float32')
     # FAISS ベクトル検索エンジンを構築
@@ -202,4 +209,4 @@ if __name__ == "__main__":
     from waitress import serve
     port = int(os.getenv("PORT", 8080))
     serve(app, host="0.0.0.0", port=port)
-    #app.run(host="0.0.0.0", port=port)
+    #app.run(host="0.0.0.0", port=port)d
