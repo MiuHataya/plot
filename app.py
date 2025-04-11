@@ -114,13 +114,16 @@ def generate_summary_from_multiple_docs(input_doc, prefix="create a coherent sto
 
 # OpenAI API を使って Summary を自然な文章にする関数
 async def refine_summary_with_openai(summary, query):
+    guide = (
+        "Please refine the following summary to make it more natural and engaging:\n"
+        f"User query: {query}\n"
+        f"AI-generated story: {summary}"
+    )
     response = await client.chat.completions.create(
         model="gpt-4",
         messages=[
             {"role": "system", "content": "You are an expert at writing natural and engaging summaries."},
-            {"role": "user", "content": f"Please refine the following summary to make it more natural and engaging:\n
-            User query:{query}\n
-            AI-generated story:{summary}"}
+            {"role": "user", "content": guide}
         ],
         temperature=0.7
     )
@@ -209,4 +212,4 @@ if __name__ == "__main__":
     from waitress import serve
     port = int(os.getenv("PORT", 8080))
     serve(app, host="0.0.0.0", port=port)
-    #app.run(host="0.0.0.0", port=port)d
+    #app.run(host="0.0.0.0", port=port)
